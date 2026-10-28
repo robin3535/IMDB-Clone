@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Runtime.Serialization;
 using AutoMapper;
+using ImdbApi.Common;
 using ImdbApi.Exceptions;
 using ImdbApi.Models;
 using ImdbApi.Models.DB;
@@ -23,7 +24,7 @@ namespace ImdbApi.Services
         private readonly IMapper _mapper;
 
         public MovieService(IMovieRepository movieRepository,
-            IActorService actorService,IProducerService producerService,IGenreService genreService,IMapper mapper)
+            IActorService actorService, IProducerService producerService, IGenreService genreService, IMapper mapper)
         {
             _movieRepository = movieRepository;
             _actorService = actorService;
@@ -31,13 +32,14 @@ namespace ImdbApi.Services
             _genreService = genreService;
             _mapper = mapper;
         }
-        public IEnumerable<MovieResponse> Get()
+        public PagedResponse<MovieResponse> Get(MovieQueryFilter filter)
         {
-            
-            IEnumerable<Movie> movies = _movieRepository.Get();
+
+            var recordCount = _movieRepository.GetRecordCount();
+            IEnumerable<Movie> movies = _movieRepository.Get(filter);
             IEnumerable<MovieResponse> movieResponses = movies.Select(movie => new MovieResponse()
             {
-               
+
                 Id = movie.Id,
                 Name = movie.Name,
                 Yor = movie.Yor,
@@ -50,7 +52,15 @@ namespace ImdbApi.Services
                 CoverImage = movie.CoverImage
 
             });
-            return movieResponses;
+            var response = new PagedResponse<MovieResponse>()
+            {
+                Data = movieResponses.ToList(),
+                PageNumber = filter.PageNumber,
+                PageSize = filter.PageSize,
+                TotalRecords = recordCount,
+                TotalPages = (int)Math.Ceiling(recordCount / (double)filter.PageSize)
+            };
+            return response;
         }
 
         public MovieResponse Get(int id)
@@ -99,7 +109,7 @@ namespace ImdbApi.Services
             }
             if (Validate(movie))
             {
-                _movieRepository.Update(movie,id);
+                _movieRepository.Update(movie, id);
             }
         }
         public bool Validate(MovieRequest movie)
@@ -140,7 +150,8 @@ namespace ImdbApi.Services
             {
                 throw new FieldValueNullException("Language cannot be empty.");
             }
-            if(movie.Yor < 0 || movie.Yor > DateTime.Now.Year){
+            if (movie.Yor < 0 || movie.Yor > DateTime.Now.Year)
+            {
                 throw new InvalidFieldValueException("Invalid Year of release.");
             }
             return true;

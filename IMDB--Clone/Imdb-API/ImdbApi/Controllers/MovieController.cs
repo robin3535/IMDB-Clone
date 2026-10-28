@@ -9,6 +9,7 @@ using ImdbApi.Services.Interfaces;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using System.Linq;
+using ImdbApi.Common;
 
 namespace ImdbApi.Controllers
 {
@@ -19,15 +20,15 @@ namespace ImdbApi.Controllers
         private readonly IMovieService _movieService;
         private readonly IActorService _actorService;
 
-        public MovieController(IMovieService movieService,IActorService actorService)
+        public MovieController(IMovieService movieService, IActorService actorService)
         {
             _movieService = movieService;
             _actorService = actorService;
         }
         [HttpGet("")]
-        public IActionResult GetMovies()
+        public IActionResult GetMovies([FromQuery] MovieQueryFilter filter)
         {
-                return Ok(_movieService.Get());
+            return Ok(_movieService.Get(filter));
 
         }
         [HttpGet("{id}")]
@@ -41,10 +42,10 @@ namespace ImdbApi.Controllers
             {
                 return NotFound(ex.Message);
             }
-      
+
         }
         [HttpGet("{movieId}/actors")]
-        public IActionResult GetActorsByMovieId([FromRoute]int movieId)
+        public IActionResult GetActorsByMovieId([FromRoute] int movieId)
         {
             try
             {
@@ -56,7 +57,7 @@ namespace ImdbApi.Controllers
             }
         }
         [HttpPost("")]
-        public IActionResult AddMovie([FromBody]MovieRequest rmovie)
+        public IActionResult AddMovie([FromBody] MovieRequest rmovie)
         {
             try
             {
@@ -77,11 +78,11 @@ namespace ImdbApi.Controllers
             }
         }
         [HttpPut("{id}")]
-        public IActionResult UpdateMovie([FromBody] MovieRequest movie, [FromRoute]int id)
+        public IActionResult UpdateMovie([FromBody] MovieRequest movie, [FromRoute] int id)
         {
             try
             {
-                _movieService.Update(movie,id);
+                _movieService.Update(movie, id);
                 return Ok("Updated Succesfully.");
             }
             catch (FieldValueNullException ex)
@@ -101,7 +102,7 @@ namespace ImdbApi.Controllers
         public async Task<IActionResult> UploadFile(IFormFile file, [FromRoute] string name)
         {
             DateTime date = new DateTime();
-            var fileName = name + "/" + date.Day+"-"+date.Month+"-"+date.Year+"-"+date.Second + "-img";
+            var fileName = name + "/" + date.Day + "-" + date.Month + "-" + date.Year + "-" + date.Second + "-img";
             if (file == null || file.Length == 0)
                 return Content("file not selected");
             var task = await new FirebaseStorage("bootcamp-d5ab1.appspot.com")
@@ -123,25 +124,25 @@ namespace ImdbApi.Controllers
             {
                 return NotFound(ex.Message);
             }
-           
+
         }
-        [HttpGet("Search")]
-        public IActionResult SearchMovie([FromQuery] string name, [FromQuery] string genre)
-        {
-            var result = _movieService.Get();
-            if(String.IsNullOrEmpty(name) && String.IsNullOrEmpty(genre))
-            {
-                return BadRequest("Please provide search value");
-            }
-            if (!String.IsNullOrEmpty(name))
-            {
-                result = result.Where(m => m.Name == name); 
-            }
-            if (!String.IsNullOrEmpty(genre))
-            {
-                result = result.Where(m => m.Name == name);
-            }
-            return Ok(result);
-        }
+        // [HttpGet("Search")]
+        // public IActionResult SearchMovie([FromQuery] string name, [FromQuery] string genre)
+        // {
+        //     var result = _movieService.Get();
+        //     if(String.IsNullOrEmpty(name) && String.IsNullOrEmpty(genre))
+        //     {
+        //         return BadRequest("Please provide search value");
+        //     }
+        //     if (!String.IsNullOrEmpty(name))
+        //     {
+        //         result = result.Where(m => m.Name == name); 
+        //     }
+        //     if (!String.IsNullOrEmpty(genre))
+        //     {
+        //         result = result.Where(m => m.Name == name);
+        //     }
+        //     return Ok(result);
+        // }
     }
 }

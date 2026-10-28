@@ -17,40 +17,45 @@ namespace ImdbApi.Repository
         {
             _connectionString = connectionString;
         }
-        public IEnumerable<T> Get(string query)
+        public IEnumerable<T> Get(string query, DynamicParameters parameters = null)
         {
             using var connection = new SqlConnection(_connectionString);
-            return connection.Query<T>(query);
+            return connection.Query<T>(query, parameters);
         }
-        public T Get(string query,object parameters)
+        public T Get(string query, object parameters)
         {
             using var connection = new SqlConnection(_connectionString);
-            return connection.QueryFirstOrDefault<T>(query,parameters);
+            return connection.QueryFirstOrDefault<T>(query, parameters);
         }
         public IEnumerable<T> Gets(string query, object parameters)
         {
             using var connection = new SqlConnection(_connectionString);
             return connection.Query<T>(query, parameters);
         }
-        public int Create(string spName,object parameter)
+        public int Create(string spName, object parameter)
         {
             using var connection = new SqlConnection(_connectionString);
-            return connection.QuerySingle<int>(spName, parameter,commandType: CommandType.StoredProcedure);
+            return connection.QuerySingle<int>(spName, parameter, commandType: CommandType.StoredProcedure);
         }
         public void Update(string spName, object parameter)
         {
             using var connection = new SqlConnection(_connectionString);
             connection.Execute(spName, parameter, commandType: CommandType.StoredProcedure);
         }
-        public void Delete(string spName,object parameters)
+        public void Delete(string spName, object parameters)
         {
             using var connection = new SqlConnection(_connectionString);
-            connection.Query(spName, parameters,commandType: CommandType.StoredProcedure);
+            connection.Query(spName, parameters, commandType: CommandType.StoredProcedure);
         }
-        public void UpdatePatch(string query,object parameters)
+        public void UpdatePatch(string query, object parameters)
         {
             using var connection = new SqlConnection(_connectionString);
             connection.Execute(query, parameters);
+        }
+        public int GetRecordCount(string query)
+        {
+            using var connection = new SqlConnection(_connectionString);
+            return connection.ExecuteScalar<int>(query);
         }
     }
 }
