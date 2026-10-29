@@ -17,6 +17,8 @@ using Newtonsoft.Json.Serialization;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using Microsoft.OpenApi;
+using ImdbApi.Filters;
+using ImdbApi.Common;
 
 namespace ImdbApi
 {
@@ -44,11 +46,14 @@ namespace ImdbApi
             services.AddScoped<IProducerRepository, ProducerRepository>();
             services.AddScoped<IGenreRepository, GenreRepository>();
             services.AddScoped<IReviewRepository, ReviewRepository>();
-            services.AddControllers();
-            services.AddSwaggerGen(c =>
+            services.AddControllers(options =>
             {
-                c.SwaggerDoc("v1", new OpenApiInfo { Title = "ImdbApi", Version = "v1" });
+                options.Filters.Add<ResponseWrappingResultFilter>();
             });
+            services.AddSwaggerGen(c =>
+                        {
+                            c.SwaggerDoc("v1", new OpenApiInfo { Title = "ImdbApi", Version = "v1" });
+                        });
             services.AddAutoMapper(_ => { }, typeof(Startup).Assembly);
             services.AddCors(p => p.AddPolicy("corspolicy", build =>
             {
@@ -68,16 +73,30 @@ namespace ImdbApi
                 app.UseSwaggerUI(c => c.SwaggerEndpoint("/swagger/v1/swagger.json", "ImdbApi v1"));
             }
 
+            // Redirects HTTP requests to HTTPS.
             app.UseHttpsRedirection();
 
-            app.UseRouting(); //enable the routing 
+            //Enable the routing 
+            app.UseRouting();
 
-            app.UseAuthorization();
+            // Controls cross-origin request access for browser-based clients.
             app.UseCors("corspolicy");
 
+            // “Who are you?” - proving identity.
+            // 401 Unauthorized - actually means unauthenticated (bad or missing token)
+            app.UseAuthentication();
+
+            // “What are you allowed to do?” - checking permissions.
+            // 403 Forbidden - authenticated but not authorized (valid token, wrong permissions)
+            app.UseAuthorization();
+
+            // Custom Middleware
+            app.UseRequestLoggingMiddleWare();
+
+            // Does the mapping of url to the resource
             app.UseEndpoints(endpoints =>
             {
-                endpoints.MapControllers(); // does the mapping of url to the resource
+                endpoints.MapControllers();
             });
         }
     }

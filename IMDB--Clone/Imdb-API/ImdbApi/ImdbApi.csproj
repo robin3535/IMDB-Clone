@@ -2,6 +2,7 @@
 
   <PropertyGroup>
     <TargetFramework>net10.0</TargetFramework>
+    <UserSecretsId>e74a658c-4feb-4b44-a1c6-0d3d71b88a3c</UserSecretsId>
   </PropertyGroup>
 
   <ItemGroup>
@@ -17,10 +18,8 @@
   </ItemGroup>
 
   <ItemGroup>
-    <EmbeddedResource Include="Migration/001_CreateCoreTables.sql"
-                      LogicalName="ImdbApi.Migration.001_CreateCoreTables.sql" />
-    <EmbeddedResource Include="Migration/002_CreateStoredProcedures.sql"
-                      LogicalName="ImdbApi.Migration.002_CreateStoredProcedures.sql" />
+    <EmbeddedResource Include="Migration/001_CreateCoreTables.sql" LogicalName="ImdbApi.Migration.001_CreateCoreTables.sql" />
+    <EmbeddedResource Include="Migration/002_CreateStoredProcedures.sql" LogicalName="ImdbApi.Migration.002_CreateStoredProcedures.sql" />
   </ItemGroup>
 
 </Project>
